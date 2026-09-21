@@ -1,0 +1,1 @@
+uvicorn api.app.main:app --port 8080
