@@ -8,6 +8,11 @@ const routes = {
     title: "Преподаватели",
     file: "/pages/teachers.html",
   },
+
+  "/news": {
+    title: "Новости кафедры",
+    file: "/pages/news.html",
+  },
 };
 
 async function navigate(path) {
