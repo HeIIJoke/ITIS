@@ -1,2 +1,3 @@
-fastapi
-uvicorn[standard]
+# Зависимости приложения — попадают в docker-образ.
+fastapi               # веб-фреймворк: роуты, валидация, Swagger
+uvicorn[standard]     # ASGI-сервер ([standard] — автоперезагрузка, uvloop, httptools)
