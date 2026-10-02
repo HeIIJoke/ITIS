@@ -1,0 +1,13 @@
+# Локальный запуск сайта в докере:  docker compose up --build
+# Появится БД/nginx — добавляй сюда новые сервисы (см. docs/tasks/08-docker.md).
+
+services:
+  web:
+    build: .
+    image: itis-web:local
+    container_name: itis-web
+    ports:
+      - "8000:8000"          # host:container
+    environment:
+      ENVIRONMENT: docker
+    restart: unless-stopped
