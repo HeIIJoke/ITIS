@@ -1,0 +1,30 @@
+/* card.css — переиспользуемый компонент «карточка» (используется на разных страницах). */
+
+.card {
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgb(16 42 67 / 8%);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.info-list {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.info-list li {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.error {
+  color: #b3261e;
+}

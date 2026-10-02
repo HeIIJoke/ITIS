@@ -1,0 +1,75 @@
+/* base.css — общие стили всего сайта: переменные, каркас, типографика. */
+
+:root {
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-text: #1f2933;
+  --color-muted: #62727d;
+  --color-primary: #1b4d89;
+  --color-border: #d9e1e8;
+  --radius: 10px;
+  --gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+header {
+  padding: var(--gap) 24px;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+nav a:hover,
+nav a:focus {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+main {
+  flex: 1;
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+footer {
+  padding: 16px 24px;
+  text-align: center;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+a {
+  color: var(--color-primary);
+}

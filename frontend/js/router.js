@@ -1,19 +1,34 @@
+/**
+ * router.js — клиентская навигация SPA.
+ *
+ * Как добавить страницу:
+ * 1) создай frontend/pages/<имя>.html (только содержимое страницы);
+ * 2) создай frontend/js/pages/<имя>.js с функцией init<Имя>() (по желанию);
+ * 3) добавь роут ниже.
+ *
+ * init вызывается после вставки разметки — там вешаем обработчики и грузим данные.
+ */
+
 const routes = {
   "/": {
     title: "Главная",
     file: "/pages/home.html",
+    init: () => initHome(),
   },
 
   "/teachers": {
     title: "Преподаватели",
     file: "/pages/teachers.html",
+    init: () => initTeachers(),
   },
 
   "/news": {
     title: "Новости кафедры",
     file: "/pages/news.html",
+    init: () => initNews(),
   },
 };
+
 
 async function navigate(path) {
   const app = document.getElementById("app");

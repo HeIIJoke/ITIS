@@ -1,0 +1,7 @@
+/* home.css — стили только главной страницы. */
+
+.home-page {
+  display: grid;
+  gap: var(--gap);
+}
+

@@ -3,11 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Официальный сайт кафедры ВТИСиТ" />
 
     <title>Кафедра ВТИСиТ</title>
 
-    <link rel="stylesheet" href="/css/pages/news.css"/>
+    <!-- Стили: base -> компоненты -> страницы (порядок важен) -->
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components/card.css" />
+    <link rel="stylesheet" href="/css/pages/home.css" />
+    <link rel="stylesheet" href="/css/pages/news.css" />
 
+    <!-- Скрипты: main -> страницы -> router (порядок важен, defer его сохраняет) -->
+    <script src="/js/main.js" defer></script>
     <script src="/js/pages/home.js" defer></script>
     <script src="/js/pages/teachers.js" defer></script>
     <script src="/js/pages/news.js" defer></script>
@@ -34,3 +41,4 @@
     </footer>
   </body>
 </html>
+
