@@ -1,0 +1,25 @@
+# Конфигурация инструментов разработки (ruff, pytest).
+# Код приложения лежит в api/, статика — в frontend/ (её линтеры не трогают).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv", "frontend"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["api"]
+
+[tool.coverage.run]
+source = ["api"]
+omit = ["api/app/main.py"]
+
+[tool.coverage.report]
+show_missing = true
