@@ -1,13 +1,17 @@
 <section class="news-page">
+  <div class="news-wrapper">
 
-  <h2>Новости кафедры</h2>
+    <div class="news-header">
+      <h1>Новости</h1>
+      <button id="toggle-form-btn" class="btn-add">Опубликовать новость</button>
+    </div>
+    
+  </div>
 
-  <div class="publish-card">
+  <div id="publish-form-card" class="publish-card hidden">
 
-    <h3>Опубликовать новость</h3>
-
+    <h3>Новая публикация</h3>
     <form id="news-form">
-
       <div class="form-group">
 
         <label for="news-title">Заголовок</label>
@@ -22,18 +26,131 @@
         
       </div>
 
-      <button type="submit">Опубликовать</button>
+      <div class="form-action">
+        <button type="submit" class="btn-submit">Опубликовать</button>
+        <button type="button" id="cancel-form-btn" class="btn-cancel">Отмена</button>
+      </div>
 
     </form>
 
   </div>
 
-  <hr style="margin: 25px 0;">
+  <div id="news-list" class="news-list">
 
-  <h3>Последние публикации</h3>
+    <article class="news-featured">
 
-  <div id="news-container">
-    <p>Загрузка новостей...</p>
+      <div class="news-image">
+        <span class="news-badge">СОБЫТИЕ</span>
+      </div>
+  
+      <div class="news-content">
+  
+        <span class="news-date">15.10.2026</span>
+  
+        <h2>День открытых дверей кафедры</h2>
+  
+        <p class="news-text">
+          Приглашаем студентов и абитуриентов на день открытых дверей
+          кафедры. Вы сможете познакомиться с преподавателями,
+          узнать о направлениях обучения и задать интересующие вопросы.
+        </p>
+  
+        <button class="event-button">
+          Подробнее
+        </button>
+  
+      </div>
+  
+    </article>
+    
+    <article class="news-card">
+
+      <div class="news-image">
+
+      </div>
+
+      <div class="news-content">
+
+        <div class="news-card-header">
+          <h2>Начало учебного года</h2>
+          <span class="news-date">01.09.2026</span>
+        </div>
+
+        <p class="news-text">
+          Кафедра поздравляет студентов с началом нового учебного года!
+          Желаем успехов в учебе, интересных проектов и новых достижений.
+        </p>
+
+      </div>
+
+    </article>
+
+    <article class="news-card">
+
+      <div class="news-image">
+
+      </div>
+
+      <div class="news-content">
+
+        <div class="news-card-header">
+          <h2>Расписание занятий</h2>
+          <span class="news-date">28.08.2026</span>
+        </div>
+
+        <p class="news-text">
+          Опубликовано расписание занятий на новый учебный семестр.
+          Ознакомиться с расписанием можно в соответствующем разделе сайта.
+        </p>
+
+      </div>
+
+    </article>
+
+    <article class="news-card">
+
+      <div class="news-image">
+
+      </div>
+
+      <div class="news-content">
+
+        <div class="news-card-header">
+          <h2>Научная конференция</h2>
+          <span class="news-date">20.08.2026</span>
+        </div>
+
+        <p class="news-text">
+          Студенты кафедры могут принять участие в научной конференции.
+          Приглашаем всех желающих представить свои проекты и исследования.
+        </p>
+
+      </div>
+
+    </article>
+
+    <article class="news-card">
+
+      <div class="news-image">
+
+      </div>
+
+      <div class="news-content">
+
+        <div class="news-card-header">
+          <h2>Конкурс студенческих проектов</h2>
+          <span class="news-date">15.08.2026</span>
+        </div>
+
+        <p class="news-text">
+          Открыт прием заявок на конкурс студенческих проектов.
+          Участники смогут представить свои разработки и получить обратную связь.
+        </p>
+
+      </div>
+
+    </article>
+    
   </div>
 
 </section>

@@ -12,6 +12,7 @@ const routes = {
   "/news": {
     title: "Новости кафедры",
     file: "/pages/news.html",
+    init: initNewsPage,
   },
 };
 
