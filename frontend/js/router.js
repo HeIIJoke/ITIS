@@ -6,7 +6,7 @@ const routes = {
 
   "/teachers": {
     title: "Преподаватели",
-    file: "/pages/teachers.html",
+    file: "/pages/teacher/teacher_list.html",
   },
 
   "/news": {
