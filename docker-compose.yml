@@ -1,5 +1,5 @@
 # Локальный запуск сайта в докере:  docker compose up --build
-# Появится БД/nginx — добавляй сюда новые сервисы (см. docs/tasks/08-docker.md).
+# Появится БД/nginx — добавляте сюда новые сервисы (см. docs/tasks/08-docker.md).
 
 services:
   web:
