@@ -1,0 +1,65 @@
+name: itis
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL. Скрипты из ./bd автоматически выполняются при ПЕРВОЙ инициализации
+  # базы (когда volume pgdata пустой). Файлы прогоняются в алфавитном порядке.
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:17-alpine
+    container_name: itis-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-itis}
+      POSTGRES_USER: ${POSTGRES_USER:-itis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-itis}
+      # Кладём данные в подпапку, чтобы volume не конфликтовал с образом postgres.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # все *.sql / *.sh из ./bd выполнятся при создании базы
+      - ./bd:/docker-entrypoint-initdb.d:ro
+    ports:
+      # удобно для подключения с хоста (pgAdmin/DBeaver).
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-itis} -d ${POSTGRES_DB:-itis}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - itis
+
+  # ---------------------------------------------------------------------------
+  # FastAPI-приложение. Собирается из multi-stage Dockerfile (лёгкий runtime).
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: itis-app:latest
+    container_name: itis-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-itis}
+      POSTGRES_USER: ${POSTGRES_USER:-itis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-itis}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-itis}:${POSTGRES_PASSWORD:-itis}@db:5432/${POSTGRES_DB:-itis}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - itis
+
+volumes:
+  pgdata:
+
+networks:
+  itis:
+    driver: bridge

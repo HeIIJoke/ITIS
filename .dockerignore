@@ -1,0 +1,23 @@
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+.git
+.gitignore
+*.md
+run.bat
+.python-version
+
+# не нужно внутри образа приложения
+bd
+tests
+domain
+Dockerfile
+dockerfile
+docker-compose.yml
+compose.yaml
+.dockerignore
+.env
+.env.*
+!.env.example
