@@ -1,0 +1,359 @@
+<section class="schedule-page schedule-edit-page">
+
+  <div class="page-head">
+    <h2>Редактирование расписания</h2>
+    <a id="back-link" class="btn-secondary" href="schedule.html">← К расписанию</a>
+  </div>
+
+  <div class="publish-card">
+    <div class="form-group" style="margin: 0;">
+      <label for="edit-group">Группа</label>
+      <select id="edit-group"></select>
+    </div>
+  </div>
+
+  <div class="edit-toolbar">
+    <button type="button" id="add-row" class="btn-secondary">+ Добавить занятие</button>
+    <div class="edit-toolbar-right">
+      <span id="save-status" class="save-status"></span>
+      <button type="button" id="cancel-btn" class="btn-secondary">Отмена</button>
+      <button type="button" id="save-btn" class="btn-primary">💾 Сохранить</button>
+    </div>
+  </div>
+
+  <p class="edit-hint">
+    Кликните в любую ячейку и редактируйте с клавиатуры. <kbd>Tab</kbd> — переход между полями,
+    <kbd>Ctrl</kbd>+<kbd>S</kbd> — сохранить.
+  </p>
+
+  <div class="schedule-wrapper">
+    <table class="schedule-table lessons-edit-table">
+      <thead>
+        <tr>
+          <th>День недели</th>
+          <th>Время</th>
+          <th>Неделя</th>
+          <th>Предмет</th>
+          <th>Преподаватель</th>
+          <th>Аудитория</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="edit-body"></tbody>
+    </table>
+  </div>
+
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============ ХРАНИЛИЩЕ (встроено) ============ */
+
+  const STORAGE_KEY = 'departmentSchedule.v1';
+
+  const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+  const TIME_SLOTS = ['08:30 – 10:00', '10:10 – 11:40', '12:10 – 13:40', '13:50 – 15:20', '15:30 – 17:00'];
+  const GROUPS = ['ИС-21', 'ИС-22', 'ПИ-21', 'ПИ-22'];
+
+  function uid() {
+    return 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function loadAll() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (err) {
+      console.warn('Не удалось прочитать расписание:', err);
+      return null;
+    }
+  }
+
+  function saveAll(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {
+      console.warn('Не удалось сохранить расписание:', err);
+    }
+  }
+
+  // если расписание ещё не создано (например, зашли сразу сюда) — ставим заглушку
+  if (!loadAll()) saveAll([]);
+
+  /* ============ ЭЛЕМЕНТЫ ============ */
+
+  const els = {
+    groupSelect: document.getElementById('edit-group'),
+    backLink: document.getElementById('back-link'),
+    body: document.getElementById('edit-body'),
+    addRow: document.getElementById('add-row'),
+    saveBtn: document.getElementById('save-btn'),
+    cancelBtn: document.getElementById('cancel-btn'),
+    status: document.getElementById('save-status')
+  };
+
+  let dirty = false;
+
+  GROUPS.forEach(g => els.groupSelect.add(new Option(g, g)));
+
+  const groupFromUrl = new URLSearchParams(location.search).get('group');
+  if (groupFromUrl && GROUPS.includes(groupFromUrl)) {
+    els.groupSelect.value = groupFromUrl;
+  }
+
+  /* ============ ОТРИСОВКА ТАБЛИЦЫ ============ */
+
+  function renderTable() {
+    const group = els.groupSelect.value;
+    els.backLink.href = 'schedule.html?group=' + encodeURIComponent(group);
+
+    const items = (loadAll() || [])
+      .filter(l => l.group === group)
+      .sort((a, b) => {
+        if (a.day !== b.day) return a.day - b.day;
+        if (a.slot !== b.slot) return a.slot - b.slot;
+        const order = { both: 0, num: 1, den: 2 };
+        return order[a.week] - order[b.week];
+      });
+
+    els.body.innerHTML = '';
+
+    if (!items.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 7;
+      td.className = 'empty';
+      td.textContent = 'Занятий пока нет. Нажмите «+ Добавить занятие».';
+      tr.appendChild(td);
+      els.body.appendChild(tr);
+      return;
+    }
+
+    items.forEach(item => els.body.appendChild(buildRow(item)));
+    setDirty(false);
+  }
+
+  function buildRow(lesson) {
+    const tr = document.createElement('tr');
+    tr.dataset.id = lesson.id || '';
+
+    // День недели (select)
+    const daySel = document.createElement('select');
+    daySel.className = 'inp-day';
+    DAYS.forEach((d, i) => daySel.add(new Option(d, i)));
+    daySel.value = String(lesson.day ?? 0);
+    tr.appendChild(wrapCell(daySel));
+
+    // Время (select)
+    const slotSel = document.createElement('select');
+    slotSel.className = 'inp-slot';
+    TIME_SLOTS.forEach((t, i) => slotSel.add(new Option(t, i)));
+    slotSel.value = String(lesson.slot ?? 0);
+    tr.appendChild(wrapCell(slotSel));
+
+    // Неделя (select)
+    const weekSel = document.createElement('select');
+    weekSel.className = 'inp-week';
+    weekSel.add(new Option('Каждая неделя', 'both'));
+    weekSel.add(new Option('Числитель', 'num'));
+    weekSel.add(new Option('Знаменатель', 'den'));
+    weekSel.value = lesson.week || 'both';
+    tr.appendChild(wrapCell(weekSel));
+
+    // Предмет / преподаватель / аудитория (текстовые поля)
+    tr.appendChild(wrapCell(textInput('inp-subject', lesson.subject || '', 'Предмет')));
+    tr.appendChild(wrapCell(textInput('inp-teacher', lesson.teacher || '', 'Фамилия И.О.')));
+    tr.appendChild(wrapCell(textInput('inp-room', lesson.room || '', 'ауд. 000')));
+
+    // Кнопка удаления
+    const tdDel = document.createElement('td');
+    tdDel.className = 'actions-cell';
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'icon-btn del';
+    delBtn.title = 'Удалить';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => {
+      tr.remove();
+      setDirty(true);
+      if (!els.body.querySelector('tr')) renderTable();
+    });
+    tdDel.appendChild(delBtn);
+    tr.appendChild(tdDel);
+
+    return tr;
+  }
+
+  function wrapCell(el) {
+    const td = document.createElement('td');
+    td.appendChild(el);
+    return td;
+  }
+
+  function textInput(cls, value, placeholder) {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = cls;
+    inp.value = value;
+    inp.placeholder = placeholder;
+    return inp;
+  }
+
+  /* ============ ДОБАВЛЕНИЕ / СОХРАНЕНИЕ ============ */
+
+  els.addRow.addEventListener('click', () => {
+    // если в таблице была заглушка "пусто" — чистим
+    if (els.body.firstElementChild && els.body.firstElementChild.children.length === 1 &&
+        els.body.firstElementChild.firstElementChild.classList.contains('empty')) {
+      els.body.innerHTML = '';
+    }
+
+    const tr = buildRow({ day: 0, slot: 0, week: 'both', subject: '', teacher: '', room: '' });
+    tr.classList.add('is-new');
+    els.body.appendChild(tr);
+    setDirty(true);
+
+    const first = tr.querySelector('.inp-subject');
+    if (first) first.focus();
+  });
+
+  els.saveBtn.addEventListener('click', onSave);
+  els.cancelBtn.addEventListener('click', () => {
+    if (dirty && !confirm('Отменить несохранённые изменения?')) return;
+    renderTable();
+  });
+
+  els.groupSelect.addEventListener('change', () => {
+    if (dirty && !confirm('Переключить группу? Несохранённые изменения будут потеряны.')) {
+      return;
+    }
+    renderTable();
+  });
+
+  // Ctrl+S / Cmd+S — сохранить
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      onSave();
+    }
+  });
+
+  // предупреждение при закрытии вкладки с несохранёнными изменениями
+  window.addEventListener('beforeunload', e => {
+    if (dirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // любая правка в таблице → dirty
+  els.body.addEventListener('input', () => setDirty(true));
+  els.body.addEventListener('change', () => setDirty(true));
+
+  function onSave() {
+    const group = els.groupSelect.value;
+    const rows = els.body.querySelectorAll('tr');
+    const list = [];
+    const errors = [];
+
+    rows.forEach((tr, idx) => {
+      const rowNum = idx + 1;
+      const day = Number(tr.querySelector('.inp-day').value);
+      const slot = Number(tr.querySelector('.inp-slot').value);
+      const week = tr.querySelector('.inp-week').value;
+      const subject = tr.querySelector('.inp-subject').value.trim();
+      const teacher = tr.querySelector('.inp-teacher').value.trim();
+      const room = tr.querySelector('.inp-room').value.trim();
+
+      // полностью пустая строка — пропускаем
+      if (!subject && !teacher && !room) return;
+
+      if (!subject) {
+        errors.push('Строка ' + rowNum + ': не указан предмет');
+        return;
+      }
+
+      list.push({
+        id: tr.dataset.id || null,
+        group, day, slot, week, subject, teacher, room
+      });
+    });
+
+    if (errors.length) {
+      alert('Проверьте данные:\n\n' + errors.join('\n'));
+      return;
+    }
+
+    const conflicts = findConflicts(list);
+    if (conflicts.length) {
+      alert('Обнаружены конфликты:\n\n' + conflicts.join('\n') +
+            '\n\nИзмените время, неделю или удалите лишние занятия.');
+      return;
+    }
+
+    // сохраняем: все занятия группы заменяются новым списком
+    const others = (loadAll() || []).filter(l => l.group !== group);
+    list.forEach(l => {
+      if (!l.id) l.id = uid();
+      others.push(l);
+    });
+    saveAll(others);
+
+    setDirty(false);
+    showStatus('Сохранено ✓', 'success');
+    renderTable();
+  }
+
+  function findConflicts(list) {
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i], b = list[j];
+        if (a.day === b.day && a.slot === b.slot &&
+            (a.week === 'both' || b.week === 'both' || a.week === b.week)) {
+          out.push('• ' + DAYS[a.day] + ', ' + TIME_SLOTS[a.slot] + ':\n   «' +
+                   a.subject + '» ↔ «' + b.subject + '»');
+        }
+      }
+    }
+    return out;
+  }
+
+  /* ============ СТАТУС / DIRTY ============ */
+
+  let statusTimer = null;
+
+  function setDirty(val) {
+    dirty = val;
+    if (!statusTimer) updateStatus();
+  }
+
+  function updateStatus() {
+    if (dirty) {
+      els.status.textContent = '● Есть несохранённые изменения';
+      els.status.className = 'save-status save-status--dirty';
+    } else {
+      els.status.textContent = '';
+      els.status.className = 'save-status';
+    }
+  }
+
+  function showStatus(text, type) {
+    if (statusTimer) clearTimeout(statusTimer);
+    els.status.textContent = text;
+    els.status.className = 'save-status save-status--' + type;
+    statusTimer = setTimeout(() => {
+      statusTimer = null;
+      updateStatus();
+    }, 2500);
+  }
+
+  /* ============ СТАРТ ============ */
+
+  renderTable();
+})();
+</script>
