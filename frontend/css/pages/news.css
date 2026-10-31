@@ -86,6 +86,107 @@
     height: 250px;
 }
 
+.form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #1f2937;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+    box-sizing: border-box;
+    appearance: none;
+    padding-right: 40px;
+}
+
+.form-group select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.event-checkbox {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-top: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.event-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.event-checkbox-mark {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border: 2px solid #94a3b8;
+    border-radius: 5px;
+    background: #ffffff;
+    transition: 0.2s;
+    position: relative;
+}
+
+.event-checkbox input:checked + .event-checkbox-mark {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.event-checkbox input:checked + .event-checkbox-mark::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.event-checkbox-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.event-checkbox-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.event-checkbox-description {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #64748b;
+}
+
+.event-checkbox:has(input:checked) {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.event-checkbox:has(input:checked) .event-checkbox-title {
+    color: #2563eb;
+}
+
+.form-action {
+    padding-top: 20px;
+}
+
 .btn-submit {
     background-color: #16a34a;
     color: #FFFFFF;
@@ -111,6 +212,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    user-select: none;
 }
 
 .news-card {
@@ -135,6 +237,7 @@
     height: 190px;
     overflow: hidden;
     background: #fafafa;
+    position: relative;
 }
 
 .news-content {
@@ -155,13 +258,11 @@
     font-size: 20px;
     font-weight: 600;
     color: #1f2937;
-    user-select: none;
 }
 
 .news-date {
     font-size: 13px;
     color: #6b7280;
-    user-select: none;
 }
 
 .news-text {
@@ -169,7 +270,6 @@
     font-size: 15px;
     line-height: 1.6;
     color: #4b5563;
-    user-select: none;
 }
 
 .news-featured {
@@ -232,20 +332,14 @@
     font-size: 18px;
     line-height: 1.7;
 }
-  
-.event-button {
-    align-self: flex-start;
-    margin-top: 22px;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 7px;
-    background: #2563eb;
-    color: #ffffff;
-    font-size: 14px;
+
+.news-category {
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: 6px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
-}
-  
-.event-button:hover {
-    background: #1d4ed8;
+    white-space: nowrap;
 }

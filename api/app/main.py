@@ -3,11 +3,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 from api.app.routers import teachers
+from api.app.routers import news
 
 
 app = FastAPI()
 
-app.include_router(teachers.router)
+# app.include_router(teachers.router)
+app.include_router(news.router)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = (BASE_DIR / "frontend").resolve()
