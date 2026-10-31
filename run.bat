@@ -1,1 +1,5 @@
-uvicorn api.app.main:app --port 8080
+@echo off
+echo Starting FastAPI server...
+uvicorn api.app.main:app --reload --port 8080
+pause
+
