@@ -5,6 +5,54 @@ async function initNewsPage() {
     const newsForm = document.getElementById("news-form");
     const newsList = document.getElementById("news-list");
 
+    const imageInput = document.getElementById("news-image");
+    const imagePreview = document.getElementById("image-preview");
+    const imagePreviewContainer = document.getElementById("image-preview-container");
+    const removeImageBtn = document.getElementById("remove-image-btn");
+    const selectedFileName = document.getElementById("selected-file-name");
+    
+    let selectedImage = null;
+
+    if (imageInput) {
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files[0];
+    
+            if (!file) {
+                return;
+            }
+    
+            if (!file.type.startsWith("image/")) {
+                alert("Выберите изображение");
+                imageInput.value = "";
+                return;
+            }
+    
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Размер изображения не должен превышать 5 МБ");
+                imageInput.value = "";
+                return;
+            }
+    
+            selectedImage = file;
+    
+            imagePreview.src = URL.createObjectURL(file);
+            selectedFileName.textContent = file.name;
+    
+            imagePreviewContainer.classList.remove("hidden");
+        });
+    }
+    
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener("click", () => {
+            selectedImage = null;
+            imageInput.value = "";
+            imagePreview.src = "";
+            selectedFileName.textContent = "Файл не выбран";
+    
+            imagePreviewContainer.classList.add("hidden");
+        });
+    }
+
     if (!newsList) return;
     await loadCategories();
 
@@ -33,24 +81,43 @@ async function initNewsPage() {
             const content = document.getElementById("news-content").value.trim();
 
             const categoryInput = document.getElementById("news-category");
-            const imageInput = document.getElementById("news-image-url");
             const eventInput = document.getElementById("news-is-event");
 
-            const news = {
-                title: title,
-                content: content,
-                category_id: Number(categoryInput.value),
-                image_url: imageInput?.value.trim() || null,
-                is_event: eventInput?.checked || false
-            };
+            if (title.length < 5) {
+                alert("Заголовок должен содержать минимум 5 символов");
+                return;
+            }
+
+            if (title.length > 150) {
+                alert("Заголовок не должен превышать 150 символов");
+                return;
+            }
+
+            if (content.length < 10) {
+                alert("Описание должно содержать минимум 10 символов");
+                return;
+            }
+
+            if (!categoryInput.value) {
+                alert("Выберите категорию новости");
+                return;
+            }
+
+            const formData = new FormData();
+
+            formData.append("title", title);
+            formData.append("content", content);
+            formData.append("category_id", categoryInput.value);
+            formData.append("is_event", String(eventInput?.checked || false));
+            
+            if (selectedImage) {
+                formData.append("image", selectedImage);
+            }
 
             try {
                 const response = await fetch("/api/news", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(news)
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -61,8 +128,15 @@ async function initNewsPage() {
                 }
 
                 newsForm.reset();
-                formCard?.classList.add("hidden");
 
+                selectedImage = null;
+                imageInput.value = "";
+                imagePreview.src = "";
+                selectedFileName.textContent = "Файл не выбран";
+                imagePreviewContainer.classList.add("hidden");
+                
+                formCard?.classList.add("hidden");
+                
                 await loadNews();
             } catch (error) {
                 console.error("Ошибка публикации:", error);
@@ -162,7 +236,7 @@ async function initNewsPage() {
             image.loading = "lazy";
 
             image.addEventListener("error", () => {
-                image.remove();
+                console.error("Не удалось загрузить изображение:", image.src);
             });
 
             imageContainer.appendChild(image);
@@ -203,6 +277,12 @@ async function initNewsPage() {
         content.append(header, title, text);
         card.append(imageContainer, content);
 
+        card.addEventListener("click", () => {
+            window.location.href = `/news/${item.id}`;
+        });
+        
+        card.style.cursor = "pointer";
+        
         return card;
     }
 }

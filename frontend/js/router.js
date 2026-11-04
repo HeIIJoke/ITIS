@@ -19,7 +19,23 @@ const routes = {
 
 async function navigate(path) {
   const app = document.getElementById("app");
-  const route = routes[path];
+
+  const newsMatch = path.match(/^\/news\/(\d+)$/);
+
+  let route;
+  let newsId = null;
+
+  if (newsMatch) {
+    newsId = newsMatch[1];
+
+    route = {
+        title: "Новость",
+        file: "/pages/news-detail.html",
+        init: () => initNewsDetailPage(newsId),
+    };
+  } else {
+    route = routes[path];
+  }
 
   if (!route) {
     app.innerHTML = "<h2>Страница не найдена</h2>";
