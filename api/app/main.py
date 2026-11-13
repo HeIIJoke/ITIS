@@ -1,13 +1,25 @@
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.app.routers import teachers
+from api.app.routers import news
 
 
 app = FastAPI()
 
-app.include_router(teachers.router)
+UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory=UPLOAD_DIR),
+    name="uploads"
+)
+
+# app.include_router(teachers.router)
+app.include_router(news.router)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = (BASE_DIR / "frontend").resolve()

@@ -1,39 +1,103 @@
 <section class="news-page">
+  <div class="news-wrapper">
 
-  <h2>Новости кафедры</h2>
+    <div class="news-header">
+      <h1>Новости</h1>
+      <button id="toggle-form-btn" class="btn-add">Опубликовать новость</button>
+    </div>
+    
+  </div>
 
-  <div class="publish-card">
+  <div id="publish-form-card" class="publish-card hidden">
 
-    <h3>Опубликовать новость</h3>
-
+    <h3>Новая публикация</h3>
     <form id="news-form">
 
       <div class="form-group">
 
         <label for="news-title">Заголовок</label>
-        <input type="text" id="news-title" required placeholder="Введите заголовок...">
+        <input type="text" id="news-title" maxlength="150" required placeholder="Введите заголовок...">
 
       </div>
 
       <div class="form-group">
 
         <label for="news-content">Текст новости</label>
-        <textarea id="news-content" rows="4" required placeholder="Введите текст новости..."></textarea>
+        <textarea id="news-content" minlength="10" rows="4" required placeholder="Введите текст новости..."></textarea>
         
       </div>
 
-      <button type="submit">Опубликовать</button>
+      <div class="form-group">
+
+        <label for="news-category">Категория</label>
+
+        <select id="news-category" required>
+            <option value="" disabled selected>Выберите категорию</option>
+        </select>
+
+      </div>
+    
+      <div class="form-group">
+
+        <label>Изображение новости</label>
+    
+        <input
+            type="file"
+            id="news-image"
+            accept="image/png, image/jpeg, image/webp"
+            hidden
+        >
+    
+        <label for="news-image" class="upload-image-btn">
+            Выбрать изображение
+        </label>
+    
+        <span id="selected-file-name" class="selected-file-name">
+            Файл не выбран
+        </span>
+    
+        <div id="image-preview-container" class="image-preview-container hidden">
+
+            <img id="image-preview" alt="Предпросмотр изображения">
+            <button type="button" id="remove-image-btn">
+                Удалить изображение
+            </button>
+
+        </div>
+
+      </div>
+    
+      <div class="form-group">
+
+        <label class="event-checkbox">
+
+            <input type="checkbox" id="news-is-event">
+            <span class="event-checkbox-mark"></span>
+    
+            <span class="event-checkbox-text">
+                <span class="event-checkbox-title">Это событие</span>
+                <span class="event-checkbox-description">
+                    Отметьте, если новость посвящена мероприятию или важному событию
+                </span>
+            </span>
+
+        </label>
+
+      </div>
+
+      <div class="form-action">
+
+        <button type="submit" class="btn-submit">Опубликовать</button>
+        <button type="button" id="cancel-form-btn" class="btn-cancel">Отмена</button>
+
+      </div>
 
     </form>
 
   </div>
 
-  <hr style="margin: 25px 0;">
-
-  <h3>Последние публикации</h3>
-
-  <div id="news-container">
-    <p>Загрузка новостей...</p>
+  <div id="news-list" class="news-list">
+    
   </div>
 
 </section>
