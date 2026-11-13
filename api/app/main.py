@@ -1,20 +1,33 @@
 from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
-from api.app.routers import teachers
-
+from api.app.routers import teachers_router
 
 app = FastAPI()
 
-app.include_router(teachers.router)
+app.include_router(teachers_router.router)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = (BASE_DIR / "frontend").resolve()
 
+
 @app.get("/api/check")
 def check():
     return {"status": "ok"}
+
+@app.get("/assets/{path:path}", include_in_schema=False)
+async def assets(path: str):
+    file_path = (FRONTEND_DIR / path).resolve()
+
+    if not file_path.is_relative_to(FRONTEND_DIR):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(file_path)
 
 
 @app.get("/{path:path}", include_in_schema=False)
