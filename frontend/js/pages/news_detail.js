@@ -1,5 +1,5 @@
-async function initNewsDetailPage(newsId) {
-  const newsDetail = document.getElementById("news-detail");
+export async function initNewsDetailPage(newsId) {
+  const newsDetail = document.getElementById("news_detail");
 
   try {
       const response = await fetch(`/api/news/${newsId}`);

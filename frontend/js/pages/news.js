@@ -1,4 +1,4 @@
-async function initNewsPage() {
+export async function initNewsPage() {
     const toggleBtn = document.getElementById("toggle-form-btn");
     const cancelBtn = document.getElementById("cancel-form-btn");
     const formCard = document.getElementById("publish-form-card");

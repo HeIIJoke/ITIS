@@ -4,10 +4,11 @@ import uuid
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from api.app.core.database import get_db
 from api.app.models.news import News, NewsCategory
+from api.app.paths import UPLOAD_DIR
+
 #from api.app.schemas.news import NewsCreate
 
 router = APIRouter(
@@ -15,8 +16,12 @@ router = APIRouter(
     tags=["Новости"]
 )
 
-UPLOAD_DIR = Path(__file__).resolve().parents[3] / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# UPLOAD_DIR = Path(__file__).resolve().parents[3] / "uploads"
+# UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+NEWS_UPLOAD_DIR = UPLOAD_DIR / "news"
+NEWS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Получение всех новостей
 @router.get("")
@@ -177,14 +182,18 @@ def create_news(
             # Создаём уникальное имя файла
             filename = f"{uuid.uuid4().hex}{extension}"
 
-            image_path = UPLOAD_DIR / filename
+            image_path = NEWS_UPLOAD_DIR / filename
+            
+
+            # image_path = UPLOAD_DIR / filename
 
             # Сохраняем изображение
             with image_path.open("wb") as file:
                 shutil.copyfileobj(image.file, file)
 
             # Путь, который будет храниться в БД
-            image_url = f"/uploads/{filename}"
+            # image_url = f"/uploads/{filename}"
+            image_url = f"/uploads/news/{filename}"
         else:
             image_url = None
 

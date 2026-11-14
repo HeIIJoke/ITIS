@@ -13,11 +13,15 @@ from sqlalchemy.exc import IntegrityError
 from api.app.core.database import get_db
 from api.app.models.teachers_model import Teacher
 from api.app.schemas.teacher_scheme import TeacherResponse
+from api.app.paths import UPLOAD_DIR
 
 router = APIRouter(prefix="/api/teachers", tags=["teachers"])
 
-UPLOAD_DIR = Path("frontend/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# UPLOAD_DIR = Path("uploads/teachers")
+# UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+TEACH_UPLOAD_DIR = UPLOAD_DIR / "teachers"
+TEACH_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_or_404(teacher_id: int, db: Session) -> Teacher:
@@ -81,12 +85,12 @@ def create_teacher(
   if file:
     file_extension = Path(file.filename).suffix
     new_filename = f"teacher_{teacher.id}{file_extension}"
-    file_path = UPLOAD_DIR / new_filename
+    file_path = TEACH_UPLOAD_DIR / new_filename
 
     with open(file_path, "wb") as buffer:
       shutil.copyfileobj(file.file, buffer)
 
-    teacher.image_url = f"/uploads/{new_filename}"
+    teacher.image_url = f"/uploads/teachers/{new_filename}"
     db.commit()
     db.refresh(teacher)
 
@@ -134,18 +138,18 @@ def update_teacher(
 
     if file and file.filename:
         if teacher.image_url:
-            old_file_path = Path("frontend") / teacher.image_url.lstrip("/")
+            old_file_path = UPLOAD_DIR / teacher.image_url.lstrip("/")
             if old_file_path.exists():
                 os.remove(old_file_path)
 
         file_extension = Path(file.filename).suffix
         new_filename = f"teacher_{teacher.id}{file_extension}"
-        file_path = UPLOAD_DIR / new_filename
+        file_path = TEACH_UPLOAD_DIR / new_filename
 
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        teacher.image_url = f"/uploads/{new_filename}"
+        teacher.image_url = f"/uploads/teachers/{new_filename}"
 
     try:
         db.commit()

@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 env/
+uploads/
 
 # Тесты и линтеры
 .pytest_cache/
