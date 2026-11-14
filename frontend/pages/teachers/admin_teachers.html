@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админка: Преподаватели</title>
+  <link rel="stylesheet" href="../../css/pages/teachers.css">
+</head>
+<body>
+  <main class="admin-container">
+    <h1>Управление преподавателями</h1>
+
+    <section>
+      <h2>Добавить / Изменить преподавателя</h2>
+      <form id="add-teacher-form" novalidate>
+        <input type="hidden" id="teacher-id" name="id">
+
+        <label>Фамилия*
+          <input name="last_name" required autocomplete="family-name">
+        </label>
+        <label>Имя*
+          <input name="first_name" required autocomplete="given-name">
+        </label>
+        <label>Отчество
+          <input name="middle_name" autocomplete="additional-name">
+        </label>
+
+        <label>Должность
+          <select name="position_id" id="select-position">
+            <option value="">— не выбрано —</option>
+          </select>
+        </label>
+
+        <label>Учёная степень
+          <select name="degree">
+            <option value="0" selected>нет</option>
+            <option value="1">кандидат наук</option>
+            <option value="2">доктор наук</option>
+          </select>
+        </label>
+
+        <label>Учёное звание
+          <select name="academic_title">
+            <option value="0" selected>нет</option>
+            <option value="1">доцент</option>
+            <option value="2">профессор</option>
+          </select>
+        </label>
+
+        <label>Email*
+          <input name="email" type="email" required autocomplete="email">
+        </label>
+        <label>Телефон
+          <input name="phone" type="tel" autocomplete="tel">
+        </label>
+        
+        <label>Дата приёма
+          <input name="hire_date" type="date">
+        </label>
+        <label>Дата увольнения
+          <input name="dismissal_date" type="date">
+        </label>
+
+        <label>Фотография с ПК
+          <input name="file" type="file" id="teacher-photo-input" accept="image/*">
+        </label>
+
+        <label style="grid-column: 1 / -1;">Био
+          <textarea name="bio" rows="3"></textarea>
+        </label>
+
+        <button type="submit" id="submit-btn">Добавить преподавателя</button>
+        <button type="button" id="cancel-edit-btn" style="display: none;">Отмена редактирования</button>
+      </form>
+      <p id="form-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section>
+      <h2>Список преподавателей</h2>
+      <ul id="admin-list"></ul>
+    </section>
+  </main>
+
+  <script type="module" src="../../js/router.js"></script>
+</body>
+</html>

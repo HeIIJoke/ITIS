@@ -1,93 +1,80 @@
-const routes = {
-  "/": {
-    title: "Главная",
-    file: "/pages/home.html",
+//import { initHome }           from "./pages/home.js";
+import { initListTeachers } from "./pages/teachers/list_teachers.js";
+import { initProfileTeacher } from "./pages/teachers/profile_teachers.js";
+import { initAdminTeachers } from "./pages/teachers/admin_teachers.js";
+import { initNewsPage } from "./pages/news.js";
+import { initNewsDetailPage } from "./pages/news_detail.js";
+
+
+const routes = [
+  // { re: /^\/$/,                   load: () => initHome() },
+  {
+    re: /^\/teachers\/?$/,
+  load: async () => {
+    const res = await fetch("/pages/teachers/teachers.html");
+    app.innerHTML = await res.text();
+    await initListTeachers();
+  }
+ },
+{
+    re: /^\/teachers\/(\d+)\/?$/,
+    load: async (m) => {
+      const res = await fetch("/pages/teachers/profile_teachers.html");
+      app.innerHTML = await res.text();
+      await initProfileTeacher({ id: m[1] });
+    }
   },
 
-  "/teachers": {
-    title: "Преподаватели",
-    file: "/pages/teachers.html",
-    // init: loadTeachers,
+{
+    re: /^\/news\/?$/, load: async (m) => {
+    const res = await fetch("/pages/news/news.html");
+    app.innerHTML = await res.text();
+    await initNewsPage();
+  }
+},
+
+  {
+    re: /^\/news\/(\d+)\/?$/,   load: async (m) => {
+    const res = await fetch("/pages/news/news_detail.html");
+    app.innerHTML = await res.text();
+    await initNewsDetailPage(m[1]);
+  } },
+
+  {
+    re: /^\/teachers\/admin\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/teachers/admin_teachers.html");
+      app.innerHTML = await res.text();
+      await initAdminTeachers();
+    },
   },
+];
 
-  "/news": {
-    title: "Новости кафедры",
-    file: "/pages/news.html",
-    init: initNewsPage,
-  },
-};
+const app = document.getElementById("app");
 
-async function navigate(path) {
-  const app = document.getElementById("app");
-
-  const newsMatch = path.match(/^\/news\/(\d+)$/);
-
-  let route;
-  let newsId = null;
-
-  if (newsMatch) {
-    newsId = newsMatch[1];
-
-    route = {
-        title: "Новость",
-        file: "/pages/news-detail.html",
-        init: () => initNewsDetailPage(newsId),
-    };
-  } else {
-    route = routes[path];
+async function render(pathname) {
+  for (const r of routes) {
+    const m = pathname.match(r.re);
+    if (m) {
+      app.innerHTML = "";
+      try {
+        await r.load(m);
+      } catch (e) {
+        console.error(e);
+        app.textContent = "Ошибка загрузки страницы.";
+      }
+      return;
+    }
   }
-
-  if (!route) {
-    app.innerHTML = "<h2>Страница не найдена</h2>";
-    document.title = "Страница не найдена | Кафедра ВТИСиТ";
-    return;
-  }
-
-  try {
-    const response = await fetch(route.file);
-
-    if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
-
-    app.innerHTML = await response.text();
-
-    document.title = `${route.title} | Кафедра ВТИСиТ`;
-
-    if (route.init) await route.init();
-  } catch (error) {
-    console.error(error);
-    app.innerHTML = "<h2>Не удалось загрузить страницу</h2>";
-  }
+  app.innerHTML = "<p>404</p>";
 }
 
-document.addEventListener("click", (event) => {
-  const link = event.target.closest("a[data-link]");
-
-  if (
-    !link ||
-    event.ctrlKey ||
-    event.metaKey ||
-    event.shiftKey ||
-    event.altKey ||
-    event.button !== 0
-  )
-    return;
-
-  const url = new URL(link.href);
-
-  if (url.origin !== location.origin) return;
-
-  event.preventDefault();
-
-  if (url.pathname === location.pathname) return;
-
-  history.pushState({}, "", url.pathname);
-  navigate(url.pathname);
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a[data-link]");
+  if (!a) return;
+  e.preventDefault();
+  history.pushState({}, "", a.href);
+  render(location.pathname);
 });
-
-window.addEventListener("popstate", () => {
-  navigate(location.pathname);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  navigate(location.pathname);
-});
+window.addEventListener("popstate", () => render(location.pathname));
+render(location.pathname);
