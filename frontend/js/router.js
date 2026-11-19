@@ -20,6 +20,7 @@ const routes = {
   },
 
   "/schedule-edit": {
+    title: "Составление расписания",
     file: "/pages/schedule-edit.html",
   }
 };
