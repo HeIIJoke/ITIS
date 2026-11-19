@@ -42,6 +42,7 @@ RUN groupadd --system --gid 1001 app \
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
+RUN install -d -o app -g app /app/uploads
 
 # Application code: FastAPI backend + static frontend.
 COPY --chown=app:app api ./api

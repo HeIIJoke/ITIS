@@ -1,10 +1,6 @@
 name: itis
 
 services:
-  # ---------------------------------------------------------------------------
-  # PostgreSQL. Скрипты из ./bd автоматически выполняются при ПЕРВОЙ инициализации
-  # базы (когда volume pgdata пустой). Файлы прогоняются в алфавитном порядке.
-  # ---------------------------------------------------------------------------
   db:
     image: postgres:17-alpine
     container_name: itis-db
@@ -17,13 +13,13 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # все *.sql / *.sh из ./bd выполнятся при создании базы
-      - ./bd:/docker-entrypoint-initdb.d:ro
+      - ./bd/sql_v2.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
+      - ./bd/migrations/001_auth.sql:/docker-entrypoint-initdb.d/20-auth.sql:ro
     ports:
       # удобно для подключения с хоста (pgAdmin/DBeaver).
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-itis} -d ${POSTGRES_DB:-itis}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -51,7 +47,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-itis}
       POSTGRES_USER: ${POSTGRES_USER:-itis}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-itis}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-itis}:${POSTGRES_PASSWORD:-itis}@db:5432/${POSTGRES_DB:-itis}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-itis}:${POSTGRES_PASSWORD:-itis}@db:5432/${POSTGRES_DB:-itis}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      AUTH_ORIGIN: ${AUTH_ORIGIN:-}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
     ports:
       - "${APP_PORT:-8080}:8080"
     networks:

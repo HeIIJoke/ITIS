@@ -22,11 +22,18 @@
     <header>
       <h1>Кафедра ВТИСиТ</h1>
 
-      <nav>
+      <nav id="site-nav">
         <a href="/" data-link>Главная</a>
         <a href="/teachers" data-link>Преподаватели</a>
         <a href="/news" data-link>Новости</a>
+        <a href="/login" data-link data-auth="guest" hidden>Войти</a>
+        <a href="/register" data-link data-auth="guest" hidden>Регистрация</a>
+        <a href="/profile" data-link data-auth="account" hidden>Личный кабинет</a>
+        <a href="/teachers/admin" data-link data-auth="admin" hidden>Управление преподавателями</a>
+        <a href="/admin/users" data-link data-auth="admin" hidden>Роли пользователей</a>
+        <button type="button" id="sign-out" data-auth="account" hidden>Выйти</button>
       </nav>
+      <p id="auth-status" role="status"></p>
     </header>
 
     <main id="app">

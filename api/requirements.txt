@@ -4,4 +4,6 @@ python-dotenv
 sqlalchemy
 psycopg2-binary
 python-multipart
-pydantic
+pydantic[email]
+PyJWT
+pwdlib[argon2]
