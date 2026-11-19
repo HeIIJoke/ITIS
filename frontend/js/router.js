@@ -13,6 +13,11 @@ const routes = {
     title: "Новости кафедры",
     file: "/pages/news.html",
   },
+
+  "/schedule": {
+    title: "Расписание кафедры",
+    file: "/pages/schedule.html",
+  },
 };
 
 async function navigate(path) {
