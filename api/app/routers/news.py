@@ -2,7 +2,8 @@ import shutil
 import uuid
 
 from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from api.app.core.database import get_db
@@ -25,22 +26,115 @@ NEWS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Получение всех новостей
 @router.get("")
-def get_news(db: Session = Depends(get_db)):
+def get_news(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(6, ge=1, le=50),
+    category_id: int = Query(None, ge=1),
+    db: Session = Depends(get_db)
+):
     try:
-        news_list = (
+        count_query = db.query(func.count(News.id))
+
+        news_query = (
             db.query(News, NewsCategory.name)
             .outerjoin(
                 NewsCategory,
                 News.category_id == NewsCategory.id
             )
+        )
+
+        if category_id is not None:
+            count_query = count_query.filter(
+                News.category_id == category_id
+            )
+
+            news_query = news_query.filter(
+                News.category_id == category_id
+            )
+
+        total = count_query.scalar()
+
+        latest_event_query = db.query(News).filter(
+            News.is_event == True
+        )
+
+        if category_id is not None:
+            latest_event_query = latest_event_query.filter(
+                News.category_id == category_id
+            )
+
+        latest_event = (
+            latest_event_query
             .order_by(
                 News.publish_date.desc(),
                 News.id.desc()
             )
-            .all()
+            .first()
         )
 
-        result = []
+        featured_event_id = (
+            latest_event.id if latest_event else None
+        )
+
+        total_pages = (total + page_size - 1) // page_size
+
+        if latest_event is None:
+            offset = (page - 1) * page_size
+
+        else:
+            news_query = news_query.filter(
+                News.id != featured_event_id
+            )
+
+            if page == 1:
+                offset = 0
+                page_limit = page_size - 1
+            else:
+                offset = page_size - 1 + (page - 2) * page_size
+                page_limit = page_size
+
+        if latest_event is not None and page == 1:
+            news_list = (
+                news_query
+                .order_by(
+                    News.publish_date.desc(),
+                    News.id.desc()
+                )
+                .offset(offset)
+                .limit(page_limit)
+                .all()
+            )
+
+            event_category = (
+                db.query(NewsCategory.name)
+                .filter(NewsCategory.id == latest_event.category_id)
+                .scalar()
+            )
+
+            result = [{
+                "id": latest_event.id,
+                "title": latest_event.title,
+                "content": latest_event.content,
+                "category": event_category,
+                "category_id": latest_event.category_id,
+                "publish_date": latest_event.publish_date,
+                "image_url": latest_event.image_url,
+                "is_event": True
+            }]
+
+        else:
+            news_list = (
+                news_query
+                .order_by(
+                    News.publish_date.desc(),
+                    News.id.desc()
+                )
+                .offset(offset)
+                .limit(page_size)
+                .all()
+            )
+
+            result = []
 
         for news, category in news_list:
             result.append({
@@ -54,7 +148,14 @@ def get_news(db: Session = Depends(get_db)):
                 "is_event": news.is_event or False
             })
 
-        return result
+        return {
+            "items": result,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "featured_event_id": featured_event_id
+        }
 
     except Exception as error:
         print(f"Ошибка получения новостей: {error}")

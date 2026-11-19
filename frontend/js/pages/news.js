@@ -4,6 +4,11 @@ export async function initNewsPage() {
     const formCard = document.getElementById("publish-form-card");
     const newsForm = document.getElementById("news-form");
     const newsList = document.getElementById("news-list");
+    const categoryFilter = document.getElementById("news-category-filter");
+    const pagination = document.getElementById("news-pagination");
+
+    let currentPage = 1;
+    const pageSize = 6;
 
     const imageInput = document.getElementById("news-image");
     const imagePreview = document.getElementById("image-preview");
@@ -55,6 +60,13 @@ export async function initNewsPage() {
 
     if (!newsList) return;
     await loadCategories();
+
+    if (categoryFilter) {
+        categoryFilter.addEventListener("change", () => {
+            currentPage = 1;
+            loadNews();
+        });
+    }
 
     if (toggleBtn && formCard) {
         toggleBtn.addEventListener("click", (event) => {
@@ -137,6 +149,7 @@ export async function initNewsPage() {
                 
                 formCard?.classList.add("hidden");
                 
+                currentPage = 1;
                 await loadNews();
             } catch (error) {
                 console.error("Ошибка публикации:", error);
@@ -158,64 +171,169 @@ export async function initNewsPage() {
             const categories = await response.json();
     
             categories.forEach((category) => {
-                const option = document.createElement("option");
+                // Категории для формы публикации
+                if (categorySelect) {
+                    const option = document.createElement("option");
     
-                option.value = category.id;
-                option.textContent = category.name;
+                    option.value = category.id;
+                    option.textContent = category.name;
     
-                categorySelect.appendChild(option);
+                    categorySelect.appendChild(option);
+                }
+    
+                // Категории для фильтра
+                if (categoryFilter) {
+                    const option = document.createElement("option");
+    
+                    option.value = category.id;
+                    option.textContent = category.name;
+    
+                    categoryFilter.appendChild(option);
+                }
             });
     
         } catch (error) {
             console.error("Ошибка загрузки категорий:", error);
-            categorySelect.innerHTML =
-                '<option value="">Не удалось загрузить категории</option>';
         }
     }
 
     async function loadNews() {
         newsList.textContent = "Загрузка новостей...";
-
+    
         try {
-            const response = await fetch("/api/news");
-
+            const params = new URLSearchParams();
+    
+            params.append("page", currentPage);
+            params.append("page_size", pageSize);
+    
+            // Добавляем категорию, если она выбрана
+            if (categoryFilter && categoryFilter.value) {
+                params.append("category_id", categoryFilter.value);
+            }
+    
+            const response = await fetch(`/api/news?${params.toString()}`);
+    
             if (!response.ok) {
                 throw new Error("Не удалось загрузить новости");
             }
-
-            const news = await response.json();
-
+    
+            const data = await response.json();
+            const news = data.items;
+    
             newsList.replaceChildren();
-
+    
             if (news.length === 0) {
-                newsList.textContent = "Пока новостей нет.";
+                newsList.textContent = "В этой категории пока нет новостей.";
+    
+                pagination.replaceChildren();
                 return;
             }
-
-            const latestEvent = news.find((item) => item.is_event === true);
-            const sortedNews = [...news];
-
-            if (latestEvent) {
-                const eventIndex = sortedNews.findIndex(
-                    (item) => item.id === latestEvent.id
-                );
-
-                if (eventIndex !== -1) {
-                    sortedNews.splice(eventIndex, 1);
-                    sortedNews.unshift(latestEvent);
-                }
-            }
-
-            sortedNews.forEach((item, index) => {
-                const isFeatured = latestEvent && item.id === latestEvent.id;
-
+    
+            news.forEach((item) => {
+                const isFeatured =
+                    currentPage === 1 &&
+                    item.id === data.featured_event_id;
+            
                 newsList.appendChild(createNewsCard(item, isFeatured));
             });
-
+    
+            // Обновляем кнопки страниц
+            renderPagination(data.total_pages);
+    
         } catch (error) {
             console.error("Ошибка загрузки новостей:", error);
             newsList.textContent = "Не удалось загрузить новости.";
+            pagination.replaceChildren();
         }
+    }
+
+    function renderPagination(totalPages) {
+        pagination.replaceChildren();
+    
+        if (totalPages <= 1) {
+            return;
+        }
+    
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "←";
+        prevButton.disabled = currentPage === 1;
+    
+        prevButton.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadNews();
+            }
+        });
+    
+        pagination.appendChild(prevButton);
+    
+        let pages = [];
+    
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            pages.push(1);
+    
+            if (currentPage <= 3) {
+                pages.push(2, 3, "...", totalPages - 2, totalPages - 1, totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(
+                    "...",
+                    totalPages - 2,
+                    totalPages - 1,
+                    totalPages
+                );
+            } else {
+                pages.push(
+                    "...",
+                    currentPage - 1,
+                    currentPage,
+                    currentPage + 1,
+                    "...",
+                    totalPages
+                );
+            }
+        }
+    
+        pages.forEach((page) => {
+            if (page === "...") {
+                const dots = document.createElement("span");
+                dots.textContent = "...";
+                dots.className = "pagination-dots";
+    
+                pagination.appendChild(dots);
+                return;
+            }
+    
+            const pageButton = document.createElement("button");
+            pageButton.textContent = page;
+    
+            if (page === currentPage) {
+                pageButton.classList.add("active");
+            }
+    
+            pageButton.addEventListener("click", () => {
+                currentPage = page;
+                loadNews();
+            });
+    
+            pagination.appendChild(pageButton);
+        });
+    
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "→";
+        nextButton.disabled = currentPage === totalPages;
+    
+        nextButton.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadNews();
+            }
+        });
+    
+        pagination.appendChild(nextButton);
     }
 
     function createNewsCard(item, isFeatured) {
