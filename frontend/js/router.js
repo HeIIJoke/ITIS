@@ -17,6 +17,7 @@ const routes = {
   "/schedule": {
     title: "Расписание кафедры",
     file: "/pages/schedule.html",
+    file: "/pages/schedule-edit.html",
   },
 };
 
