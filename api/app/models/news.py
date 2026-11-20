@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.sql import func
 from api.app.core.database import Base
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.sql import func
 
 
 class NewsCategory(Base):
@@ -9,15 +9,13 @@ class NewsCategory(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False, unique=True)
 
+
 class News(Base):
     __tablename__ = "news"
     __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
 
-    category_id = Column(
-        Integer,
-        ForeignKey("public.news_categories.id")
-    )
+    category_id = Column(Integer, ForeignKey("public.news_categories.id"))
 
     # author_id = Column(Integer, ForeignKey("public.users.id"))
     title = Column(String(150), nullable=False)

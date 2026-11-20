@@ -1,4 +1,3 @@
-
 from datetime import date
 from enum import IntEnum
 from typing import Optional
@@ -7,14 +6,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class Degree(IntEnum):
-    NONE      = 0
+    NONE = 0
     CANDIDATE = 1
-    DOCTOR    = 2
+    DOCTOR = 2
 
 
 class AcademicTitle(IntEnum):
-    NONE      = 0
-    DOCENT    = 1
+    NONE = 0
+    DOCENT = 1
     PROFESSOR = 2
 
 

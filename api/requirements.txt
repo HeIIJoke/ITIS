@@ -5,5 +5,7 @@ sqlalchemy
 psycopg2-binary
 python-multipart
 pydantic
+ruff
+pre-commit
 # EmailStr в схемах/формах требует отдельного пакета валидации email
 email-validator
