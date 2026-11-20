@@ -1,19 +1,17 @@
-from datetime import date
 import os
 import shutil
+from datetime import date
 from pathlib import Path
 from typing import List, Optional
 
+from api.app.core.database import get_db
+from api.app.models.teachers_model import Teacher
+from api.app.paths import UPLOAD_DIR
+from api.app.schemas.teacher_scheme import TeacherResponse
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import EmailStr
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-
-from api.app.core.database import get_db
-from api.app.models.teachers_model import Teacher
-from api.app.schemas.teacher_scheme import TeacherResponse
-from api.app.paths import UPLOAD_DIR
 
 router = APIRouter(prefix="/api/teachers", tags=["teachers"])
 
@@ -25,27 +23,27 @@ TEACH_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_or_404(teacher_id: int, db: Session) -> Teacher:
-  teacher = db.get(Teacher, teacher_id)
-  if not teacher:
-    raise HTTPException(404, "Преподаватель не найден")
-  return teacher
+    teacher = db.get(Teacher, teacher_id)
+    if not teacher:
+        raise HTTPException(404, "Преподаватель не найден")
+    return teacher
 
 
 @router.get("", response_model=List[TeacherResponse])
 def get_teachers(db: Session = Depends(get_db)):
-  return db.query(Teacher).all()
+    return db.query(Teacher).all()
 
 
 @router.get("/positions")
 def get_teacher_positions(db: Session = Depends(get_db)):
-  query = text("SELECT id, name FROM teacher_positions ORDER BY id")
-  result = db.execute(query).mappings().all()
-  return list(result)
+    query = text("SELECT id, name FROM teacher_positions ORDER BY id")
+    result = db.execute(query).mappings().all()
+    return list(result)
 
 
 @router.get("/{teacher_id}", response_model=TeacherResponse)
 def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
-  return get_or_404(teacher_id, db)
+    return get_or_404(teacher_id, db)
 
 
 @router.post("", response_model=TeacherResponse, status_code=status.HTTP_201_CREATED)
@@ -65,36 +63,36 @@ def create_teacher(
     db: Session = Depends(get_db),
 ):
 
-  teacher = Teacher(
-      last_name=last_name,
-      first_name=first_name,
-      middle_name=middle_name,
-      email=email,
-      phone=phone,
-      bio=bio,
-      degree=degree,
-      academic_title=academic_title,
-      position_id=position_id,
-      hire_date=hire_date,
-      dismissal_date=dismissal_date,
-  )
-  db.add(teacher)
-  db.commit()
-  db.refresh(teacher)
-
-  if file:
-    file_extension = Path(file.filename).suffix
-    new_filename = f"teacher_{teacher.id}{file_extension}"
-    file_path = TEACH_UPLOAD_DIR / new_filename
-
-    with open(file_path, "wb") as buffer:
-      shutil.copyfileobj(file.file, buffer)
-
-    teacher.image_url = f"/uploads/teachers/{new_filename}"
+    teacher = Teacher(
+        last_name=last_name,
+        first_name=first_name,
+        middle_name=middle_name,
+        email=email,
+        phone=phone,
+        bio=bio,
+        degree=degree,
+        academic_title=academic_title,
+        position_id=position_id,
+        hire_date=hire_date,
+        dismissal_date=dismissal_date,
+    )
+    db.add(teacher)
     db.commit()
     db.refresh(teacher)
 
-  return teacher
+    if file:
+        file_extension = Path(file.filename).suffix
+        new_filename = f"teacher_{teacher.id}{file_extension}"
+        file_path = TEACH_UPLOAD_DIR / new_filename
+
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        teacher.image_url = f"/uploads/teachers/{new_filename}"
+        db.commit()
+        db.refresh(teacher)
+
+    return teacher
 
 
 @router.patch("/{teacher_id}", response_model=TeacherResponse)
@@ -112,7 +110,7 @@ def update_teacher(
     hire_date: Optional[date] = Form(None),
     dismissal_date: Optional[date] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
 
     teacher = get_or_404(teacher_id, db)
@@ -135,7 +133,6 @@ def update_teacher(
         if value is not None:
             setattr(teacher, field, value)
 
-
     if file and file.filename:
         if teacher.image_url:
             old_file_path = UPLOAD_DIR / teacher.image_url.lstrip("/")
@@ -154,11 +151,11 @@ def update_teacher(
     try:
         db.commit()
         db.refresh(teacher)
-    except Exception as e:
+    except Exception:
         db.rollback()
         raise HTTPException(
-            status_code=400, 
-            detail="Ошибка сохранения. Возможно, такой email уже занят."
+            status_code=400,
+            detail="Ошибка сохранения. Возможно, такой email уже занят.",
         )
 
     return teacher
@@ -166,12 +163,12 @@ def update_teacher(
 
 @router.delete("/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
-  teacher = get_or_404(teacher_id, db)
+    teacher = get_or_404(teacher_id, db)
 
-  if teacher.image_url:
-    file_path = Path("frontend") / teacher.image_url.lstrip("/")
-    if file_path.exists():
-      os.remove(file_path)
+    if teacher.image_url:
+        file_path = Path("frontend") / teacher.image_url.lstrip("/")
+        if file_path.exists():
+            os.remove(file_path)
 
-  db.delete(teacher)
-  db.commit()
+    db.delete(teacher)
+    db.commit()
