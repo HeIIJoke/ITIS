@@ -51,7 +51,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-itis}
       POSTGRES_USER: ${POSTGRES_USER:-itis}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-itis}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-itis}:${POSTGRES_PASSWORD:-itis}@db:5432/${POSTGRES_DB:-itis}
+      # Явно указываем драйвер psycopg2: с SQLAlchemy 2.1 префикс postgresql://
+      # по умолчанию выбирает psycopg 3, которого нет в requirements.txt.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-itis}:${POSTGRES_PASSWORD:-itis}@db:5432/${POSTGRES_DB:-itis}
     ports:
       - "${APP_PORT:-8080}:8080"
     networks:
