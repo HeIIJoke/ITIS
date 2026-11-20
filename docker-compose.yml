@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runtime
-    image: itis-app:latest
+    #image: itis-app:latest
     container_name: itis-app
     restart: unless-stopped
     depends_on:
