@@ -1,65 +1,32 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.exception_handlers import request_validation_exception_handler
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from api.app.paths import UPLOAD_DIR
+from api.app.routers import news, teachers_router
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-
-from api.app.core.auth import signing_key
-from api.app.routers import auth, news, teachers_router
-from api.app.paths import UPLOAD_DIR
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    signing_key()
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
-
-
-@app.middleware("http")
-async def set_response_headers(request: Request, call_next):
-    response = await call_next(request)
-    if request.url.path.startswith(("/api/auth/", "/api/admin/users")):
-        response.headers["Cache-Control"] = "no-store"
-    elif request.url.path.startswith("/uploads/"):
-        response.headers["Content-Security-Policy"] = "sandbox"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-    return response
-
-
-@app.exception_handler(RequestValidationError)
-async def handle_validation_error(request: Request, error: RequestValidationError):
-    if request.url.path.rstrip("/") in ("/api/auth/register", "/api/auth/login"):
-        details = [
-            {key: item[key] for key in ("loc", "msg", "type")} for item in error.errors()
-        ]
-        return JSONResponse({"detail": details}, status_code=422)
-    return await request_validation_exception_handler(request, error)
+app = FastAPI()
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = (BASE_DIR / "frontend").resolve()
 
 
-app.mount(
-    "/uploads",
-    StaticFiles(directory=UPLOAD_DIR),
-    name="uploads"
-)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 app.include_router(auth.router)
 app.include_router(auth.admin_router)
 app.include_router(news.router)
 app.include_router(teachers_router.router)
 
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+
 @app.get("/api/check")
 def check():
     return {"status": "ok"}
+
 
 @app.get("/assets/{path:path}", include_in_schema=False)
 async def assets(path: str):

@@ -48,6 +48,10 @@ RUN install -d -o app -g app /app/uploads
 COPY --chown=app:app api ./api
 COPY --chown=app:app frontend ./frontend
 
+# WORKDIR создал /app от root, поэтому не-root пользователь не может создать
+# /app/uploads при старте приложения (main.py делает mkdir на импорте).
+RUN mkdir -p /app/uploads && chown -R app:app /app
+
 USER app
 
 EXPOSE 8080
