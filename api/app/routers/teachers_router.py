@@ -12,6 +12,13 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from pydantic import EmailStr
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
+from api.app.core.auth import require_admin
+from api.app.core.database import get_db
+from api.app.models.teachers_model import Teacher
+from api.app.schemas.teacher_scheme import TeacherResponse
+from api.app.paths import UPLOAD_DIR
 
 router = APIRouter(prefix="/api/teachers", tags=["teachers"])
 
@@ -46,7 +53,10 @@ def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
     return get_or_404(teacher_id, db)
 
 
-@router.post("", response_model=TeacherResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=TeacherResponse, status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_admin)],
+)
 def create_teacher(
     last_name: str = Form(...),
     first_name: str = Form(...),
@@ -95,7 +105,7 @@ def create_teacher(
     return teacher
 
 
-@router.patch("/{teacher_id}", response_model=TeacherResponse)
+@router.patch("/{teacher_id}", response_model=TeacherResponse, dependencies=[Depends(require_admin)])
 def update_teacher(
     teacher_id: int,
     last_name: Optional[str] = Form(None),
@@ -161,7 +171,9 @@ def update_teacher(
     return teacher
 
 
-@router.delete("/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)]
+)
 def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
     teacher = get_or_404(teacher_id, db)
 

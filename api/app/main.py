@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from api.app.paths import UPLOAD_DIR
@@ -14,6 +15,8 @@ FRONTEND_DIR = (BASE_DIR / "frontend").resolve()
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
+app.include_router(auth.router)
+app.include_router(auth.admin_router)
 app.include_router(news.router)
 app.include_router(teachers_router.router)
 

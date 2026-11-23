@@ -2,6 +2,7 @@ import shutil
 import uuid
 from pathlib import Path
 
+from api.app.core.auth import require_admin
 from api.app.core.database import get_db
 from api.app.models.news import News, NewsCategory
 from api.app.paths import UPLOAD_DIR
@@ -177,7 +178,7 @@ def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
 
 
 # Публикация новости
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(require_admin)])
 def create_news(
     title: str = Form(..., min_length=5, max_length=150),
     content: str = Form(..., min_length=10),

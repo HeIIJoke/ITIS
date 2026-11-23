@@ -1,6 +1,4 @@
-const ADMIN_AUTH = "Basic " + btoa("admin:admin123");
-
-let adminInitialized = false;
+import { authenticatedFetch } from "../../auth.js";
 
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
@@ -44,8 +42,6 @@ async function loadPositions() {
   }
 }
 
-let teachersCache = [];
-
 export async function initAdminTeachers() {
   const form = document.getElementById("add-teacher-form");
   const list = document.getElementById("admin-list");
@@ -56,11 +52,7 @@ export async function initAdminTeachers() {
 
   if (!form || !list) return;
 
-  if (adminInitialized) {
-    await refreshList();
-    return;
-  }
-  adminInitialized = true;
+  let teachersCache = [];
 
   await Promise.all([loadPositions(), refreshList()]);
 
@@ -117,11 +109,10 @@ export async function initAdminTeachers() {
       const url = isEditing ? `/api/teachers/${editingId}` : "/api/teachers";
       const method = isEditing ? "PATCH" : "POST";
 
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: method,
         headers: {
           "Accept": "application/json",
-          "Authorization": ADMIN_AUTH,
         },
         body: fd,
       });
@@ -158,9 +149,9 @@ export async function initAdminTeachers() {
       if (!confirm("Удалить преподавателя?")) return;
       target.disabled = true;
       try {
-        const res = await fetch(`/api/teachers/${id}`, {
+        const res = await authenticatedFetch(`/api/teachers/${id}`, {
           method: "DELETE",
-          headers: { "Authorization": ADMIN_AUTH, Accept: "application/json" },
+          headers: { Accept: "application/json" },
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
         await refreshList();
