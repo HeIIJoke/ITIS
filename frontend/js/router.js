@@ -1,85 +1,101 @@
-const routes = {
-  "/": {
-    title: "Главная",
-    file: "/pages/home.html",
-  },
+//import { initHome }           from "./pages/home.js";
+import { initListTeachers } from "./pages/teachers/list_teachers.js";
+import { initProfileTeacher } from "./pages/teachers/profile_teachers.js";
+import { initAdminTeachers } from "./pages/teachers/admin_teachers.js";
+import { initNewsPage } from "./pages/news.js";
+import { initNewsDetailPage } from "./pages/news_detail.js";
+import { initSchedulePage } from "./pages/schedule.js";
+import { initScheduleEditPage } from "./pages/schedule-edit.js";
 
-  "/teachers": {
-    title: "Преподаватели",
-    file: "/pages/teachers.html",
-  },
 
-  "/news": {
-    title: "Новости кафедры",
-    file: "/pages/news.html",
-  },
 
-  "/schedule": {
-    title: "Расписание кафедры",
-    file: "/pages/schedule.html",
-  },
-
-  "/schedule-edit": {
-    title: "Составление расписания",
-    file: "/pages/schedule-edit.html",
+const routes = [
+  // { re: /^\/$/,                   load: () => initHome() },
+  {
+    re: /^\/teachers\/?$/,
+  load: async () => {
+    const res = await fetch("/pages/teachers/teachers.html");
+    app.innerHTML = await res.text();
+    await initListTeachers();
   }
-};
+ },
+{
+    re: /^\/teachers\/(\d+)\/?$/,
+    load: async (m) => {
+      const res = await fetch("/pages/teachers/profile_teachers.html");
+      app.innerHTML = await res.text();
+      await initProfileTeacher({ id: m[1] });
+    }
+  },
 
-async function navigate(path) {
-  const app = document.getElementById("app");
-  const route = routes[path];
-
-  if (!route) {
-    app.innerHTML = "<h2>Страница не найдена</h2>";
-    document.title = "Страница не найдена | Кафедра ВТИСиТ";
-    return;
+{
+    re: /^\/news\/?$/, load: async (m) => {
+    const res = await fetch("/pages/news/news.html");
+    app.innerHTML = await res.text();
+    await initNewsPage();
   }
+},
 
-  try {
-    const response = await fetch(route.file);
+  {
+    re: /^\/news\/(\d+)\/?$/,   load: async (m) => {
+    const res = await fetch("/pages/news/news_detail.html");
+    app.innerHTML = await res.text();
+    await initNewsDetailPage(m[1]);
+  } },
 
-    if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+  {
+    re: /^\/teachers\/admin\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/teachers/admin_teachers.html");
+      app.innerHTML = await res.text();
+      await initAdminTeachers();
+    },
+  },
 
-    app.innerHTML = await response.text();
+  {
+    re: /^\/schedule\/edit\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/schedule/schedule-edit.html");
+      app.innerHTML = await res.text();
+      return await initScheduleEditPage();   
+    },
+  },
 
-    document.title = `${route.title} | Кафедра ВТИСиТ`;
+  {
+     re: /^\/schedule\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/schedule/schedule.html");
+      app.innerHTML = await res.text();
+      return await initSchedulePage();      
+    },
+  },
+];
 
-    if (route.init) await route.init();
-  } catch (error) {
-    console.error(error);
-    app.innerHTML = "<h2>Не удалось загрузить страницу</h2>";
+const app = document.getElementById("app");
+
+async function render(pathname) {
+  for (const r of routes) {
+    const m = pathname.match(r.re);
+    if (m) {
+      app.innerHTML = "";
+      try {
+        await r.load(m);
+      } catch (e) {
+        console.error(e);
+        app.textContent = "Ошибка загрузки страницы.";
+      }
+      return;
+    }
   }
+  app.innerHTML = "<p>404</p>";
 }
 
-document.addEventListener("click", (event) => {
-  const link = event.target.closest("a[data-link]");
-
-  if (
-    !link ||
-    event.ctrlKey ||
-    event.metaKey ||
-    event.shiftKey ||
-    event.altKey ||
-    event.button !== 0
-  )
-    return;
-
-  const url = new URL(link.href);
-
-  if (url.origin !== location.origin) return;
-
-  event.preventDefault();
-
-  if (url.pathname === location.pathname) return;
-
-  history.pushState({}, "", url.pathname);
-  navigate(url.pathname);
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a[data-link]");
+  if (!a) return;
+  e.preventDefault();
+  history.pushState({}, "", a.href);
+  render(location.pathname);
 });
-
-window.addEventListener("popstate", () => {
-  navigate(location.pathname);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  navigate(location.pathname);
-});
+window.addEventListener("popstate", () => render(location.pathname));
+render(location.pathname);

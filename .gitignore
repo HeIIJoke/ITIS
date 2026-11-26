@@ -3,3 +3,21 @@ __pycache__/
 .venv/
 venv/
 env/
+uploads/
+
+# Тесты и линтеры
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Локальные настройки IDE и секреты
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+
+# БД-файлы локальной разработки
+*.db
+*.sqlite3
