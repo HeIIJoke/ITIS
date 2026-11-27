@@ -25,15 +25,3 @@ docker compose exec app python -m api.app.manage_auth my-login
 ему роль студента или преподавателя после проверки. Администратор также может
 вернуть аккаунту роль гостя.
 
-## Существующая база
-
-Перед запуском новой сборки примените миграцию к существующему PostgreSQL.
-Для базы из предшествующего запуска Docker Compose выполните:
-
-```sh
-docker compose up -d --wait db
-docker compose exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < bd/migrations/001_auth.sql
-docker compose up --build -d app
-```
-
-При создании пустой базы Compose применяет миграцию автоматически.
