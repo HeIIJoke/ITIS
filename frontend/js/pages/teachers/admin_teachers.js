@@ -23,7 +23,7 @@ async function loadPositions() {
   if (!select) return;
 
   try {
-    const res = await fetch("/api/teachers/positions", {
+    const res = await authenticatedFetch("/api/teachers/positions", {
       headers: { Accept: "application/json" },
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -195,7 +195,7 @@ export async function initAdminTeachers() {
   async function refreshList() {
     list.innerHTML = "<li>Загрузка...</li>";
     try {
-      const res = await fetch("/api/teachers", {
+      const res = await authenticatedFetch("/api/teachers", {
         headers: { Accept: "application/json" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -1,5 +1,6 @@
 
 
+
 let teachersAbort = null;
 
 export async function initListTeachers() {
@@ -15,7 +16,7 @@ export async function initListTeachers() {
   container.innerHTML = "";
 
   try {
-    const res = await fetch("/api/teachers", {
+    const res = await fetch("/api/teachers/public", {
       headers: { Accept: "application/json" },
       signal,
     });

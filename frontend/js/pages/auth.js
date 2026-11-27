@@ -7,52 +7,22 @@ const roleLabels = new Map([
   ["admin", "Администратор"],
 ]);
 
-export function renderCredentials(container, mode, navigate, registered) {
-  const registering = mode === "register";
-  const title = registering ? "Регистрация" : "Вход";
-  const submitLabel = registering ? "Зарегистрироваться" : "Войти";
-  container.innerHTML = `
-    <section class="account-panel">
-      <h2>${title}</h2>
-      <form>
-        <label>Логин
-          <input name="login" required autocomplete="username" maxlength="50" ${registering ? 'minlength="3"' : ""}>
-        </label>
-        <label>Пароль
-          <input name="password" type="password" required
-            ${registering
-              ? 'autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="password-hint"'
-              : 'autocomplete="current-password" maxlength="1024"'}>
-        </label>
-        ${registering ? '<small id="password-hint">От 12 до 128 символов.</small>' : ""}
-        <button type="submit">${submitLabel}</button>
-        <p role="status"></p>
-      </form>
-      ${registering
-        ? '<a href="/login" data-link>Уже есть аккаунт? Войти</a>'
-        : '<a href="/register" data-link>Создать аккаунт</a>'}
-    </section>`;
-
-  const form = container.querySelector("form");
+export function renderCredentials(container, navigate) {
+  container.innerHTML = `<section class="account-panel"><h2>Вход в личный кабинет</h2>
+    <p>Используйте учётную запись, выданную администратором.</p>
+    <form><label>Логин<input name="login" required autocomplete="username" maxlength="50"></label>
+    <label>Пароль<input name="password" type="password" required autocomplete="current-password" maxlength="1024"></label>
+    <button type="submit">Войти</button><p role="status"></p></form></section>`;
+  const form = container.querySelector('form');
+  const button = form.querySelector('button');
   const status = form.querySelector('[role="status"]');
-  const button = form.querySelector("button");
-  if (registered) status.textContent = "Аккаунт создан. Войдите с вашим логином и паролем.";
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const credentials = Object.fromEntries(new FormData(form));
-    button.disabled = true;
-    status.textContent = "";
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); button.disabled = true; status.textContent = '';
     try {
-      await submitCredentials(mode, credentials);
-      if (!form.isConnected) return;
-      form.reset();
-      navigate(registering ? "/login" : "/profile", { replace: true, registered: registering });
-    } catch (error) {
-      status.textContent = error.message;
-    } finally {
-      button.disabled = false;
-    }
+      await submitCredentials(Object.fromEntries(new FormData(form)));
+      if (form.isConnected) navigate('/', {replace: true});
+    } catch (error) { status.textContent = error.message; }
+    finally { button.disabled = false; }
   });
 }
 

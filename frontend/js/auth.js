@@ -67,18 +67,16 @@ export async function readError(response, fallback) {
   return fallback;
 }
 
-export async function submitCredentials(mode, credentials) {
-  const response = await fetch(`/api/auth/${mode}`, {
+export async function submitCredentials(credentials) {
+  const response = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
   });
   if (!response.ok) throw new Error(await readError(response, "Не удалось отправить форму."));
 
-  if (mode === "login") {
-    const data = await response.json();
-    updateSession(data.access_token);
-  }
+  const data = await response.json();
+  updateSession(data.access_token);
 }
 
 export async function signOut() {

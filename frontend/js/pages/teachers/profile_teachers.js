@@ -1,3 +1,4 @@
+
 export function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
     "&": "&amp;",
@@ -39,7 +40,7 @@ export async function initProfileTeacher(params) {
   container.textContent = "Загрузка...";
 
   try {
-    const res = await fetch(`/api/teachers/${teacherId}`, {
+    const res = await fetch(`/api/teachers/public/${teacherId}`, {
       headers: { Accept: "application/json" },
       signal,
     });

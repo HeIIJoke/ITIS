@@ -54,3 +54,16 @@ class TeacherUpdate(BaseModel):
 class TeacherResponse(TeacherBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+class PublicTeacherResponse(BaseModel):
+    id: int
+    last_name: str
+    first_name: str
+    middle_name: Optional[str] = None
+    position_id: Optional[int] = None
+    degree: Degree = Degree.NONE
+    academic_title: AcademicTitle = AcademicTitle.NONE
+    bio: Optional[str] = None
+    image_url: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
