@@ -1,0 +1,71 @@
+#site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1rem;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#auth-status:empty,
+.account-panel [role="status"]:empty {
+  display: none;
+}
+
+.account-panel {
+  box-sizing: border-box;
+  margin: 2rem auto;
+  width: min(100%, 28rem);
+  padding: 1.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  color: #112345;
+  font-family: system-ui, sans-serif;
+}
+
+.account-panel h2 {
+  margin: 0 0 1.25rem;
+}
+
+.account-panel form {
+  display: grid;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.account-panel label {
+  display: grid;
+  gap: .25rem;
+}
+
+.account-panel input,
+.account-panel select,
+.account-panel button {
+  box-sizing: border-box;
+  padding: .5rem .75rem;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.account-panel button {
+  justify-self: start;
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: white;
+}
+
+.account-panel button:disabled {
+  opacity: .6;
+}
+
+.account-panel dt {
+  color: #475569;
+}
+
+.account-panel dd {
+  margin: 0 0 .75rem;
+  overflow-wrap: anywhere;
+}

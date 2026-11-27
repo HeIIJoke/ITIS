@@ -1,4 +1,6 @@
-export async function initNewsPage() {
+import { authenticatedFetch } from "../auth.js";
+
+export async function initNewsPage(canPublish) {
     const toggleBtn = document.getElementById("toggle-form-btn");
     const cancelBtn = document.getElementById("cancel-form-btn");
     const formCard = document.getElementById("publish-form-card");
@@ -6,6 +8,8 @@ export async function initNewsPage() {
     const newsList = document.getElementById("news-list");
     const categoryFilter = document.getElementById("news-category-filter");
     const pagination = document.getElementById("news-pagination");
+
+    toggleBtn.hidden = !canPublish;
 
     let currentPage = 1;
     const pageSize = 6;
@@ -85,7 +89,7 @@ export async function initNewsPage() {
 
     loadNews();
 
-    if (newsForm) {
+    if (canPublish && newsForm) {
         newsForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
@@ -127,7 +131,7 @@ export async function initNewsPage() {
             }
 
             try {
-                const response = await fetch("/api/news", {
+                const response = await authenticatedFetch("/api/news", {
                     method: "POST",
                     body: formData
                 });

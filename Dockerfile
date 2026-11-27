@@ -42,10 +42,15 @@ RUN groupadd --system --gid 1001 app \
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
+RUN install -d -o app -g app /app/uploads
 
 # Application code: FastAPI backend + static frontend.
 COPY --chown=app:app api ./api
 COPY --chown=app:app frontend ./frontend
+
+# WORKDIR создал /app от root, поэтому не-root пользователь не может создать
+# /app/uploads при старте приложения (main.py делает mkdir на импорте).
+RUN mkdir -p /app/uploads && chown -R app:app /app
 
 USER app
 

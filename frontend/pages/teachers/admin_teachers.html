@@ -1,13 +1,6 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Админка: Преподаватели</title>
-  <link rel="stylesheet" href="../../css/pages/teachers.css">
-</head>
-<body>
-  <main class="admin-container">
+<template id="teachers-admin-template">
+  <link rel="stylesheet" href="/css/pages/teachers.css">
+  <section class="admin-container">
     <h1>Управление преподавателями</h1>
 
     <section>
@@ -79,8 +72,5 @@
       <h2>Список преподавателей</h2>
       <ul id="admin-list"></ul>
     </section>
-  </main>
-
-  <script type="module" src="../../js/router.js"></script>
-</body>
-</html>
+  </section>
+</template>

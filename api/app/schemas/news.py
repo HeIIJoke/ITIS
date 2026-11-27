@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class NewsCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=150)
@@ -7,6 +9,7 @@ class NewsCreate(BaseModel):
     category_id: int
     image_url: str | None = None
     is_event: bool = False
+
 
 class NewsResponse(BaseModel):
     id: int
