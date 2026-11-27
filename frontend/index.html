@@ -2,47 +2,45 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Кафедра вычислительной техники, информационных систем и технологий" />
-
-    <title>Кафедра ВТИСиТ</title>
-
-    <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="/css/pages/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Кафедра ВТИСиТ • УГТУ</title>
     <link rel="stylesheet" href="/css/pages/news.css" />
-
+    <link rel="stylesheet" href="/css/pages/style.css" />
+    <link rel="stylesheet" href="/css/pages/home.css" />
     <script type="module" src="/js/router.js"></script>
-    <script src="/js/pages/home.js" defer></script>
-    <script type="module" src="/js/pages/news.js" defer></script>
-    <script type="module" src="/js/pages/news_detail.js"></script>
-
   </head>
-
   <body>
-    <header>
-      <h1>Кафедра ВТИСиТ</h1>
-
-      <nav id="site-nav">
-        <a href="/" data-link>Главная</a>
-        <a href="/teachers" data-link>Преподаватели</a>
-        <a href="/news" data-link>Новости</a>
-        <a href="/login" data-link data-auth="guest" hidden>Войти</a>
-        <a href="/register" data-link data-auth="guest" hidden>Регистрация</a>
-        <a href="/profile" data-link data-auth="account" hidden>Личный кабинет</a>
-        <a href="/teachers/admin" data-link data-auth="admin" hidden>Управление преподавателями</a>
-        <a href="/admin/users" data-link data-auth="admin" hidden>Роли пользователей</a>
-        <button type="button" id="sign-out" data-auth="account" hidden>Выйти</button>
+    <header class="site-header">
+      <a class="brand" href="/" data-link
+        ><span class="brand-mark">УГТУ</span
+        ><span class="brand-caption"
+          >Кафедра вычислительной техники,<br />
+          информационных систем и технологий</span
+        ></a
+      >
+      <nav id="site-nav" aria-label="Основная навигация">
+        <a href="/" data-link>Главная</a><a href="/news" data-link>Новости</a
+        ><a href="/teachers" data-link>Преподаватели</a
+        ><a href="/teachers/admin" data-link data-auth="admin" hidden
+          >Управление преподавателями</a
+        ><a href="/admin/users" data-link data-auth="admin" hidden
+          >Роли пользователей</a
+        ><a href="/profile" data-link data-auth="account" hidden
+          >Личный кабинет</a
+        ><a class="login-link" href="/login" data-link data-auth="guest" hidden
+          >Войти</a
+        ><button id="sign-out" type="button" data-auth="account" hidden>
+          Выйти
+        </button>
       </nav>
       <p id="auth-status" role="status"></p>
     </header>
-
     <main id="app">
       <noscript>Для работы сайта нужен JavaScript.</noscript>
       <p>Загрузка...</p>
     </main>
-
-    <footer>
-      <p>Кафедра вычислительной техники, информационных систем и технологий</p>
+    <footer class="site-footer">
+      Ухтинский государственный технический университет · Кафедра ВТИСиТ
     </footer>
   </body>
 </html>

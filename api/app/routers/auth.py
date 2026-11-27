@@ -10,7 +10,6 @@ from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
 from pydantic import BaseModel, ConfigDict, SecretStr, StringConstraints
 from sqlalchemy import delete, select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from api.app.core.auth import (
@@ -41,11 +40,6 @@ class Credentials(BaseModel):
 
     login: Login
     password: Annotated[SecretStr, StringConstraints(min_length=1, max_length=1024)]
-
-
-class Registration(Credentials):
-    login: NewLogin
-    password: Annotated[SecretStr, StringConstraints(min_length=12, max_length=128)]
 
 
 class Account(BaseModel):
@@ -83,26 +77,6 @@ router = APIRouter(prefix="/api/auth", tags=["Авторизация"], dependen
 admin_router = APIRouter(
     prefix="/api/admin/users", tags=["Пользователи"], dependencies=[Depends(require_admin)]
 )
-
-
-@router.post("/register", status_code=201)
-def register(body: Registration, db: Session = Depends(get_db)) -> Account:
-    guest = db.scalars(select(Role).where(Role.name == "guest")).one()
-    user = User(
-        login=body.login,
-        password_hash=password_hash.hash(body.password.get_secret_value()),
-        role=guest,
-        is_active=True,
-    )
-    db.add(user)
-    try:
-        db.commit()
-    except IntegrityError as error:
-        db.rollback()
-        if getattr(getattr(error.orig, "diag", None), "constraint_name", None) == "users_login_key":
-            raise HTTPException(409, "Логин уже занят") from None
-        raise
-    return account(user)
 
 
 @router.post("/login")

@@ -7,12 +7,11 @@ from typing import List, Optional
 from api.app.core.database import get_db
 from api.app.models.teachers_model import Teacher
 from api.app.paths import UPLOAD_DIR
-from api.app.schemas.teacher_scheme import TeacherResponse
+from api.app.schemas.teacher_scheme import TeacherResponse, PublicTeacherResponse
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import EmailStr
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from api.app.core.auth import require_admin
 from api.app.core.database import get_db
@@ -36,19 +35,29 @@ def get_or_404(teacher_id: int, db: Session) -> Teacher:
     return teacher
 
 
-@router.get("", response_model=List[TeacherResponse])
+@router.get("/public", response_model=List[PublicTeacherResponse])
+def get_public_teachers(db: Session = Depends(get_db)):
+    return db.query(Teacher).all()
+
+
+@router.get("/public/{teacher_id}", response_model=PublicTeacherResponse)
+def get_public_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    return get_or_404(teacher_id, db)
+
+
+@router.get("", response_model=List[TeacherResponse], dependencies=[Depends(require_admin)])
 def get_teachers(db: Session = Depends(get_db)):
     return db.query(Teacher).all()
 
 
-@router.get("/positions")
+@router.get("/positions", dependencies=[Depends(require_admin)])
 def get_teacher_positions(db: Session = Depends(get_db)):
     query = text("SELECT id, name FROM teacher_positions ORDER BY id")
     result = db.execute(query).mappings().all()
     return list(result)
 
 
-@router.get("/{teacher_id}", response_model=TeacherResponse)
+@router.get("/{teacher_id}", response_model=TeacherResponse, dependencies=[Depends(require_admin)])
 def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
     return get_or_404(teacher_id, db)
 

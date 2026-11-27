@@ -1,3 +1,4 @@
+import { canAccess } from "./permissions.js";
 import { readAccount, signOut } from "./auth.js";
 import { renderCredentials, renderProfile, renderUserAdmin } from "./pages/auth.js";
 import { initListTeachers } from "./pages/teachers/list_teachers.js";
@@ -34,12 +35,12 @@ const routes = [
   { path: /^\/admin\/users\/?$/, access: "admin", init: () => renderUserAdmin(app) },
   { path: /^\/profile\/?$/, access: "account", init: (_, account) => renderProfile(app, account) },
   {
-    path: /^\/(login|register)\/?$/,
+    path: /^\/(login)\/?$/,
     init: ([, mode], account) => {
       if (account) {
         navigate("/profile", { replace: true });
       } else {
-        renderCredentials(app, mode, navigate, history.state?.registered);
+        renderCredentials(app, navigate);
       }
     },
   },
@@ -53,12 +54,7 @@ let renderVersion = 0;
 function updateNavigation(account) {
   document.querySelectorAll("[data-auth]").forEach((element) => {
     const access = element.dataset.auth;
-    const visible = {
-      guest: !account,
-      account: Boolean(account),
-      admin: account?.role === "admin",
-    };
-    element.hidden = !visible[access];
+    element.hidden = !canAccess(account, access);
   });
 }
 
@@ -82,6 +78,11 @@ async function render(pathname) {
     if (version !== renderVersion) return;
     updateNavigation(account);
 
+    app.classList.toggle("home-view", pathname === "/");
+    document.querySelectorAll("#site-nav a").forEach(a => {
+      if (new URL(a.href).pathname === pathname) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
     if (!route) {
       app.textContent = "404";
       return;
@@ -90,8 +91,8 @@ async function render(pathname) {
       navigate("/login", { replace: true });
       return;
     }
-    if (route.access === "admin" && account.role !== "admin") {
-      app.textContent = "Этот раздел доступен только администратору.";
+    if (!canAccess(account, route.access)) {
+      app.textContent = "У вас нет прав для просмотра этого раздела.";
       return;
     }
 
@@ -118,7 +119,7 @@ logoutButton.addEventListener("click", async () => {
   logoutButton.disabled = true;
   try {
     await signOut();
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   } catch (error) {
     authStatus.textContent = error.message;
   } finally {
