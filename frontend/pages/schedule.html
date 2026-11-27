@@ -1,0 +1,228 @@
+<section class="schedule-page">
+<link rel="stylesheet" href="../css/pages/raspianie.css"> 
+  <h2>Расписание занятий</h2>
+
+  <div class="schedule-toolbar">
+
+    <div class="form-group">
+      <label for="schedule-group">Группа</label>
+      <select id="schedule-group"></select>
+    </div>
+
+    <div class="form-group">
+      <label>Неделя</label>
+      <div class="week-toggle" role="group" aria-label="Выбор недели">
+        <button type="button" class="week-btn is-active" data-week="num">Числитель</button>
+        <button type="button" class="week-btn" data-week="den">Знаменатель</button>
+      </div>
+    </div>
+
+    <a id="edit-link" class="btn-primary" href="schedule-edit.html">✎ Редактировать расписание</a>
+
+  </div>
+
+  <div class="schedule-wrapper">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th class="time-col">Время</th>
+          <th>Понедельник</th>
+          <th>Вторник</th>
+          <th>Среда</th>
+          <th>Четверг</th>
+          <th>Пятница</th>
+          <th>Суббота</th>
+        </tr>
+      </thead>
+      <tbody id="schedule-body"></tbody>
+    </table>
+  </div>
+
+  <p id="schedule-info"></p>
+
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============ ХРАНИЛИЩЕ (встроено) ============ */
+
+  const STORAGE_KEY = 'departmentSchedule.v1';
+
+  const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+  const TIME_SLOTS = ['08:30 – 10:00', '10:10 – 11:40', '12:10 – 13:30', '14:30 – 16:00', '16:10 – 17:40'];
+  const GROUPS = ['ИС-21', 'ИС-22', 'ПИ-21', 'ПИ-22'];
+  const WEEK_LABEL = { both: '', num: 'числ.', den: 'знам.' };
+
+  function uid() {
+    return 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function loadAll() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (err) {
+      console.warn('Не удалось прочитать расписание:', err);
+      return null;
+    }
+  }
+
+  function saveAll(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {
+      console.warn('Не удалось сохранить расписание:', err);
+    }
+  }
+
+  function seed() {
+    const s = (group, day, slot, week, subject, teacher, room) =>
+      ({ id: uid(), group, day, slot, week, subject, teacher, room });
+
+    return [
+      s('ИС-21', 0, 0, 'both', 'Математика', 'Иванов И.И.', 'ауд. 301'),
+      s('ИС-21', 1, 0, 'both', 'Физика', 'Петров П.П.', 'ауд. 210'),
+      s('ИС-21', 3, 0, 'both', 'Программирование', 'Сидоров С.С.', 'ауд. 405'),
+      s('ИС-21', 4, 0, 'both', 'История', 'Кузнецова А.А.', 'ауд. 112'),
+      s('ИС-21', 0, 1, 'both', 'Информатика', 'Смирнов В.В.', 'ауд. 402'),
+      s('ИС-21', 2, 1, 'both', 'Базы данных', 'Орлова Е.Е.', 'ауд. 408'),
+      s('ИС-21', 3, 1, 'both', 'Английский язык', 'Морозова Н.Н.', 'ауд. 205'),
+      s('ИС-21', 5, 1, 'both', 'Физкультура', 'Зайцев Д.Д.', 'спортзал'),
+      s('ИС-21', 0, 2, 'both', 'Веб-разработка', 'Фёдоров К.К.', 'ауд. 410'),
+      s('ИС-21', 1, 2, 'both', 'Алгоритмы', 'Никитин О.О.', 'ауд. 403'),
+      s('ИС-21', 2, 2, 'num',  'Проектная работа', 'Фёдоров К.К.', 'ауд. 410'),
+      s('ИС-21', 2, 2, 'den',  'Дискретная математика', 'Соколов А.А.', 'ауд. 302'),
+      s('ИС-21', 3, 2, 'both', 'ООП', 'Сидоров С.С.', 'ауд. 405'),
+      s('ИС-21', 4, 2, 'both', 'Философия', 'Белова М.М.', 'ауд. 115'),
+      s('ИС-21', 1, 3, 'both', 'Сети', 'Тихонов Р.Р.', 'ауд. 407'),
+      s('ИС-21', 2, 3, 'both', 'Компьютерная графика', 'Орлова Е.Е.', 'ауд. 408'),
+      s('ИС-21', 3, 3, 'num',  'Практикум по ООП', 'Сидоров С.С.', 'ауд. 405'),
+      s('ИС-21', 3, 3, 'den',  'Деловой английский', 'Морозова Н.Н.', 'ауд. 205'),
+      s('ИС-21', 4, 3, 'both', 'Курсовая работа', '', 'ауд. 401')
+    ];
+  }
+
+  // первый запуск — засеять демо-данными
+  if (!loadAll()) saveAll(seed());
+
+  /* ============ ОТРИСОВКА ============ */
+
+  const els = {
+    group: document.getElementById('schedule-group'),
+    weekBtns: document.querySelectorAll('.week-btn'),
+    tbody: document.getElementById('schedule-body'),
+    info: document.getElementById('schedule-info'),
+    editLink: document.getElementById('edit-link')
+  };
+
+  let currentWeek = 'num';
+
+  GROUPS.forEach(g => els.group.add(new Option(g, g)));
+
+  const groupFromUrl = new URLSearchParams(location.search).get('group');
+  if (groupFromUrl && GROUPS.includes(groupFromUrl)) {
+    els.group.value = groupFromUrl;
+  }
+
+  els.group.addEventListener('change', render);
+  els.weekBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentWeek = btn.dataset.week;
+      els.weekBtns.forEach(b => b.classList.toggle('is-active', b === btn));
+      render();
+    });
+  });
+
+  render();
+
+  function render() {
+    const group = els.group.value;
+    const all = loadAll() || [];
+    const groupLessons = all.filter(l => l.group === group);
+
+    els.tbody.innerHTML = '';
+
+    TIME_SLOTS.forEach((slotLabel, slotIdx) => {
+      const tr = document.createElement('tr');
+
+      const tdTime = document.createElement('td');
+      tdTime.className = 'time-col';
+      tdTime.textContent = slotLabel;
+      tr.appendChild(tdTime);
+
+      DAYS.forEach((_, dayIdx) => {
+        const td = document.createElement('td');
+
+        const items = groupLessons
+          .filter(l => l.day === dayIdx && l.slot === slotIdx)
+          .filter(l => l.week === 'both' || l.week === currentWeek)
+          .sort((a, b) => (a.week === 'both' ? -1 : b.week === 'both' ? 1 : 0));
+
+        if (!items.length) {
+          const empty = document.createElement('span');
+          empty.className = 'empty';
+          empty.textContent = '—';
+          td.appendChild(empty);
+        } else {
+          items.forEach(l => td.appendChild(renderLessonCard(l)));
+        }
+
+        tr.appendChild(td);
+      });
+
+      els.tbody.appendChild(tr);
+    });
+
+    els.info.innerHTML =
+      'Расписание для группы: <strong>' + escapeHtml(group) + '</strong>, неделя: <strong>' +
+      (currentWeek === 'num' ? 'числитель' : 'знаменатель') + '</strong>';
+
+    els.editLink.href = 'schedule-edit.html?group=' + encodeURIComponent(group);
+  }
+
+  function renderLessonCard(lesson) {
+    const div = document.createElement('div');
+    div.className = 'lesson lesson--' + lesson.week;
+
+    const head = document.createElement('div');
+    head.className = 'lesson-head';
+    const subject = document.createElement('span');
+    subject.className = 'subject';
+    subject.textContent = lesson.subject;
+    head.appendChild(subject);
+
+    if (lesson.week !== 'both') {
+      const badge = document.createElement('span');
+      badge.className = 'week-badge week-badge--' + lesson.week;
+      badge.textContent = WEEK_LABEL[lesson.week];
+      head.appendChild(badge);
+    }
+    div.appendChild(head);
+
+    if (lesson.teacher) {
+      const t = document.createElement('span');
+      t.className = 'teacher';
+      t.textContent = lesson.teacher;
+      div.appendChild(t);
+    }
+    if (lesson.room) {
+      const r = document.createElement('span');
+      r.className = 'room';
+      r.textContent = lesson.room;
+      div.appendChild(r);
+    }
+
+    return div;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+})();
+</script>

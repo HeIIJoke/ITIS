@@ -6,6 +6,9 @@ import { initProfileTeacher } from "./pages/teachers/profile_teachers.js";
 import { initAdminTeachers } from "./pages/teachers/admin_teachers.js";
 import { initNewsPage } from "./pages/news.js";
 import { initNewsDetailPage } from "./pages/news_detail.js";
+import { initSchedulePage } from "./pages/schedule.js";
+import { initScheduleEditPage } from "./pages/schedule-edit.js";
+
 
 const routes = [
   { path: /^\/$/, template: "/pages/home.html" },
@@ -42,6 +45,24 @@ const routes = [
       } else {
         renderCredentials(app, navigate);
       }
+    },
+  },
+
+  {
+    re: /^\/schedule\/edit\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/schedule/schedule-edit.html");
+      app.innerHTML = await res.text();
+      return await initScheduleEditPage();   
+    },
+  },
+
+  {
+     re: /^\/schedule\/?$/,
+    load: async () => {
+      const res = await fetch("/pages/schedule/schedule.html");
+      app.innerHTML = await res.text();
+      return await initSchedulePage();      
     },
   },
 ];
