@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from api.app.paths import UPLOAD_DIR
-from api.app.routers import news, teachers_router
+from api.app.routers import news, teachers_router, auth
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
